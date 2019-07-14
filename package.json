@@ -26,6 +26,7 @@
     "eslint-config-xo": "^0.26.0",
     "eslint-config-xo-typescript": "^0.15.0",
     "eslint-plugin-prettier": "^3.1.0",
+    "ethereum-bridge": "^0.6.2",
     "ethlint": "^1.2.4",
     "prettier": "^1.18.2",
     "prettier-plugin-solidity": "^1.0.0-alpha.26",
@@ -37,7 +38,8 @@
     "typescript": "^3.5.2"
   },
   "dependencies": {
-    "openzeppelin-solidity": "^2.3.0"
+    "openzeppelin-solidity": "^2.3.0",
+    "web3": "1.0.0-beta.36"
   },
   "directories": {
     "test": "test"

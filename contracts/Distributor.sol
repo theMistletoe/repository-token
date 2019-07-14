@@ -26,6 +26,7 @@ contract Distributor is
 	using StringToUint for string;
 	uint public mintVolumePerDay;
 	uint public totalDownloadsPerDay;
+	string public xxxxx;
 	struct Request {
 		string start;
 		string end;
@@ -39,6 +40,14 @@ contract Distributor is
 	mapping(address => uint) lastDownloads;
 
 	event LogDownloadsUpdated(address _repository, uint _downloads);
+	event LogYoutubeViewCount(string views);
+
+	constructor()
+        public
+    {
+        // update(); // Update views on contract creation...
+		xxxxx = "kjcsidbiv";
+    }
 
 	function setMintVolumePerDay(uint _vol) public onlyOwner {
 		mintVolumePerDay = _vol;
@@ -88,25 +97,39 @@ contract Distributor is
 	}
 
 	// It is expected to be called by [Oraclize](https://docs.oraclize.it/#ethereum-quick-start).
-	function __callback(bytes32 _id, string memory _result) public {
-		Request memory req = requests[oraclePendingQueries[_id]];
-		if (msg.sender != oraclize_cbAddress()) {
-			revert("mismatch oraclize_cbAddress");
-		}
-		address repos = req.package;
-		require(repos != address(0), "invalid query id");
-		uint count = _result.toUint(0);
-		emit LogDownloadsUpdated(repos, count);
-		uint dailyDownloads = daily(count, req.period);
-		uint nextTotalDownloads = totalDownloadsPerDay.sub(
-			lastDownloads[repos].add(dailyDownloads)
-		);
-		uint rate = dailyDownloads.div(nextTotalDownloads);
-		uint vol = req.period.mul(mintVolumePerDay);
-		uint value = vol.mul(rate);
-		increment(repos, value);
-		setTotalDownloadsPerDay(nextTotalDownloads);
-	}
+	// function __callback(bytes32 _id, string memory _result) public {
+	// 	Request memory req = requests[oraclePendingQueries[_id]];
+	// 	if (msg.sender != oraclize_cbAddress()) {
+	// 		revert("mismatch oraclize_cbAddress");
+	// 	}
+	// 	address repos = req.package;
+	// 	require(repos != address(0), "invalid query id");
+	// 	uint count = _result.toUint(0);
+	// 	emit LogDownloadsUpdated(repos, count);
+	// 	uint dailyDownloads = daily(count, req.period);
+	// 	uint nextTotalDownloads = totalDownloadsPerDay.sub(
+	// 		lastDownloads[repos].add(dailyDownloads)
+	// 	);
+	// 	uint rate = dailyDownloads.div(nextTotalDownloads);
+	// 	uint vol = req.period.mul(mintVolumePerDay);
+	// 	uint value = vol.mul(rate);
+	// 	increment(repos, value);
+	// 	setTotalDownloadsPerDay(nextTotalDownloads);
+	// }
+
+	function __callback(
+        bytes32 _myid,
+        string memory _result
+    )
+        public
+    {
+        require(msg.sender == oraclize_cbAddress());
+        // viewsCount = _result;
+		// setMintVolumePerDay(_result);
+		xxxxx = _result;
+        emit LogYoutubeViewCount(xxxxx);
+        // Do something with viewsCount, like tipping the author if viewsCount > X?
+    }
 
 	function daily(uint _downloads, uint _period) internal pure returns (uint) {
 		return _downloads.div(_period);
@@ -116,7 +139,7 @@ contract Distributor is
 		totalDownloadsPerDay = _d;
 	}
 
-	function oracleQueryNpmDownloads(address _reqrepos) private {
+	function oracleQueryNpmDownloads(address _reqrepos) public payable {
 		require(
 			oraclize_getPrice("URL") > address(this).balance,
 			"Oraclize query was NOT sent, please add some ETH to cover for the query fee"
@@ -139,4 +162,15 @@ contract Distributor is
 		bytes32 queryId = oraclize_query("URL", param);
 		oraclePendingQueries[queryId] = _reqrepos;
 	}
+
+	function update()
+        public
+        payable
+    {
+        // emit LogNewOraclizeQuery("Oraclize query was sent, standing by for the answer...");
+        // oraclize_query("URL", 'html(https://www.youtube.com/watch?v=9bZkp7q19f0).xpath(//*[contains(@class, "watch-view-count")]/text())');
+        // oraclize_query("URL", 'json(https://api.github.com/users/theMistletoe).login');
+        oraclize_query("URL", 'json(https://api.npmjs.org/downloads/point/2019-07-01:2019-07-02/yarn).downloads');
+		setMintVolumePerDay(2938);
+    }
 }
